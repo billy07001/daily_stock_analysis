@@ -87,6 +87,13 @@ def test_daily_analysis_accepts_modelflare_one_key_from_secrets() -> None:
     assert '[ -n "$MODELFLARE_KEY" ]' in analyze["run"]
 
 
+def test_daily_analysis_uses_gemini_as_modelflare_fallback() -> None:
+    env = _load_daily_analysis_env()
+    assert env["LLM_CHANNELS"] == (
+        "${{ vars.LLM_CHANNELS || secrets.LLM_CHANNELS || 'modelflare,gemini' }}"
+    )
+
+
 def test_daily_analysis_keeps_channel_secrets_in_secrets_context() -> None:
     templates = _extract_provider_templates()
     env = _load_daily_analysis_env()

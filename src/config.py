@@ -553,7 +553,10 @@ def resolve_llm_channel_models(
         return models
     names = [name.strip().lower() for name in channel_names.split(',') if name.strip()]
     primary = primary_model.strip() or MODELFLARE_LLM_MODEL_DEFAULT
-    if (names != ["modelflare"] or channel_name.strip().lower() != "modelflare"
+    allows_multi_channel_default = "gemini" in names
+    if (channel_name.strip().lower() != "modelflare"
+            or "modelflare" not in names
+            or (names != ["modelflare"] and not allows_multi_channel_default)
             or not primary.startswith("openai/") or not primary[7:].strip()):
         return []
     routes = [primary] + [model.strip() for model in fallback_models.split(',')]

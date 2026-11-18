@@ -36,6 +36,26 @@ from src.services.system_config_service import SystemConfigService
 class LLMChannelConfigTestCase(unittest.TestCase):
     @patch("src.config.setup_env")
     @patch.object(Config, "_parse_litellm_yaml", return_value=[])
+    def test_modelflare_channel_uses_gemini_legacy_key_as_fallback(self, _yaml, _setup) -> None:
+        with patch.dict(os.environ, {
+            "LLM_CHANNELS": "modelflare,gemini",
+            "LLM_MODELFLARE_API_KEY": "sk-test",
+            "GEMINI_API_KEY": "gemini-test",
+            "GEMINI_MODEL": "gemini-test-model",
+        }, clear=True):
+            config = Config._load_from_env()
+
+        self.assertEqual(config.litellm_model, "openai/gpt-6.1-sol")
+        gemini_routes = [
+            route for route in config.llm_model_list
+            if route["model_name"].startswith("gemini/")
+        ]
+        self.assertEqual(len(gemini_routes), 1)
+        self.assertEqual(gemini_routes[0]["model_name"], "gemini/gemini-test-model")
+        self.assertEqual(gemini_routes[0]["litellm_params"]["api_key"], "gemini-test")
+
+    @patch("src.config.setup_env")
+    @patch.object(Config, "_parse_litellm_yaml", return_value=[])
     def test_modelflare_inherits_existing_primary_and_openai_fallback_routes(self, _yaml, _setup) -> None:
         with patch.dict(os.environ, {
             "LLM_CHANNELS": "Modelflare",

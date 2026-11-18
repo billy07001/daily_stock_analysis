@@ -2572,6 +2572,13 @@ class Config:
             if not api_keys and ch_lower == "anspire":
                 anspire_keys_raw = os.getenv('ANSPIRE_API_KEYS', '')
                 api_keys = [k.strip() for k in anspire_keys_raw.split(',') if k.strip()]
+            if not api_keys and ch_lower == "gemini":
+                gemini_keys_raw = os.getenv('GEMINI_API_KEYS', '')
+                api_keys = [k.strip() for k in gemini_keys_raw.split(',') if k.strip()]
+                if not api_keys:
+                    single_gemini = os.getenv('GEMINI_API_KEY', '').strip()
+                    if single_gemini:
+                        api_keys = [single_gemini]
             api_keys = resolve_llm_channel_api_keys(ch_name, api_keys, os.environ)
 
             # Models
@@ -2588,6 +2595,12 @@ class Config:
                 ).strip()
                 if anspire_model:
                     raw_models = [anspire_model]
+            if not raw_models and ch_lower == "gemini":
+                gemini_model = (
+                    os.getenv('GEMINI_MODEL') or 'gemini-3.6-flash'
+                ).strip()
+                if gemini_model:
+                    raw_models = [gemini_model]
 
             # Disabled channels are inert. In particular, stale values such as
             # LLM_HERMES_API_SURFACE=responses must not block valid legacy
